@@ -1,0 +1,3 @@
+[flake8]
+exclude = .env, env, __pycache__, site-packages
+max-line-length = 120
