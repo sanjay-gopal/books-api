@@ -1,32 +1,20 @@
-from pydantic import BaseModel, Field
+# from pydantic import BaseModel, Field
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends, Query
 from fastapi import status
 
-from app.database.db import db_dependency, get_db
+from app.database.db import db_dependency
 from app.models.book import Book
 from app.routers.auth import get_current_user
-from sqlalchemy.orm import Session
+# from sqlalchemy.orm import Session
 
-from datetime import date
+# from datetime import date
 from typing import Annotated
+from app.scheme.Book import BookCreate, BookResponse
 
 router = APIRouter(prefix="/books", tags=["Books"])
 user_dependency = Annotated[dict, Depends(get_current_user)]
-
-class BookCreate(BaseModel):
-    title: str = Field(..., description="Title of the book")
-    author: str = Field(..., description="Author of the book")
-    published_date: date = Field(..., description="Published date of the book")
-    summary: str = Field(..., description="Summary of the book")
-    genre: str = Field(..., description="Genere of the book")
-
-class BookResponse(BookCreate):
-    id: int
-
-    class Config:
-        form_attribute = True
 
 @router.post("/", response_model=BookResponse, status_code=status.HTTP_201_CREATED)
 def create_book(user: user_dependency, db: db_dependency, book: BookCreate):

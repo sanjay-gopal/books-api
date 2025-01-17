@@ -6,12 +6,15 @@ app = FastAPI(
     title="Books API",
     description="Books API with CRUD operations",
     version="1.0.0",
-    openapi_tags=[
-        {
-            'name': "Books API",
-            'description': 'Book API to add, create, update and delete a book'
+    openapi_tags=[{
+            "name": "Books API",
+            "description": "Book API to add, create, update and delete a book"
         }
-    ]
+    ],
+    contact={
+        "name": "Sanjay Gopal",
+        "email": "sanjay.gopal111@gmail.com"
+    }
 )
 
 # Create database tables

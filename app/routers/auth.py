@@ -1,10 +1,7 @@
-from pydantic import BaseModel
 from fastapi import APIRouter, Depends, HTTPException
 from fastapi.security import OAuth2PasswordRequestForm, OAuth2PasswordBearer
-# from sqlalchemy.orm import Mapped
 
-from sqlalchemy.orm import Session
-from app.database.db import get_db, db_dependency
+from app.database.db import db_dependency
 
 from app.models.user import User
 
@@ -16,16 +13,9 @@ import app.core.settings as config
 
 from datetime import datetime, timedelta
 from starlette import status
+from app.scheme.User import UserRequest, Token
 
 router = APIRouter(prefix="/auth", tags=["Auth"])
-
-class Token(BaseModel):
-    access_token: str
-    token_type: str
-
-class UserRequest(BaseModel):
-    username: str
-    password: str
 
 oauth2_bearer = OAuth2PasswordBearer(tokenUrl='auth/token')
 crypt_context = CryptContext(schemes=["bcrypt"], deprecated="auto")
