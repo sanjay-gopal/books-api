@@ -1,4 +1,4 @@
-from pydantic import BaseModel
+from pydantic import BaseModel, Field
 from typing import List
 
 from fastapi import APIRouter, HTTPException, Depends, Query
@@ -16,11 +16,11 @@ router = APIRouter(prefix="/books", tags=["Books"])
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
 class BookCreate(BaseModel):
-    title: str
-    author: str
-    published_date: date
-    summary: str
-    genre: str
+    title: str = Field(..., description="Title of the book")
+    author: str = Field(..., description="Author of the book")
+    published_date: date = Field(..., description="Published date of the book")
+    summary: str = Field(..., description="Summary of the book")
+    genre: str = Field(..., description="Genere of the book")
 
 class BookResponse(BookCreate):
     id: int

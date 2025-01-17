@@ -5,7 +5,13 @@ from app.database.db import Base, engine
 app = FastAPI(
     title="Books API",
     description="Books API with CRUD operations",
-    version="v1"
+    version="1.0.0",
+    openapi_tags=[
+        {
+            'name': "Books API",
+            'description': 'Book API to add, create, update and delete a book'
+        }
+    ]
 )
 
 # Create database tables
