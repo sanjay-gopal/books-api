@@ -50,7 +50,7 @@ def create_user(db: db_dependency, create_user_request: UserRequest):
     db.commit()
 
 @router.post("/token", response_model=Token)
-def login_to_access(db: db_dependency, form_data: OAuth2PasswordRequestForm = Depends()):
+def login_to_access(db: db_dependency, form_data: Annotated[OAuth2PasswordRequestForm, Depends()]):
     user = db.query(User).filter(User.username == form_data.username).first()
     if not user or not verify_user(form_data.password, user.password_hash):
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Invalid credentials were given")
@@ -66,11 +66,15 @@ def login_to_access(db: db_dependency, form_data: OAuth2PasswordRequestForm = De
 
 def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
     try:
-        payload = jwt.decode(token, config.SECRET_KEY, algorithm=[config.ALGORITHM])
+        payload = jwt.decode(token, config.SECRET_KEY, algorithms=[config.ALGORITHM])
         current_user = payload.get('sub')
+        print("This is current user")
+        print(current_user)
         if current_user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to validate user")
-        return current_user
+        return {
+            'username': current_user
+        }
     except PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to validate user")
     
