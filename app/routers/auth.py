@@ -67,22 +67,3 @@ def get_current_user(token: Annotated[str, Depends(oauth2_bearer)]):
         }
     except PyJWTError:
         raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="Unable to validate user")
-    
-# @router.post('/token', response_model=Token)
-# def login_for_access(form_data: Annotated[OAuth2PasswordRequestForm, Depends()], db: db_dependency):
-#     user = auth_user(form_data.username, form_data.password, db)
-#     if not user:
-
-
-
-
-# def auth_user(username, password, db):
-#     user = db.query(User).filter(User.username == username).first()
-#     if not user:
-#         return False
-#     verify_user = crypt_context.verify(password, user.password_hash)
-#     print("----------Verify User---------------")
-#     print(verify_user)
-#     if not verify_user:
-#         return False
-#     return user

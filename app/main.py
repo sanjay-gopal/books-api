@@ -1,5 +1,5 @@
 from fastapi import FastAPI
-from app.routers import auth, book
+from app.routers import auth, book, streaming
 from app.database.db import Base, engine
 
 app = FastAPI(
@@ -17,9 +17,9 @@ app = FastAPI(
     }
 )
 
-# Create database tables
 Base.metadata.create_all(bind=engine)
 
-# Include routers
+#Including all the routers
 app.include_router(auth.router)
 app.include_router(book.router)
+app.include_router(streaming.router)
