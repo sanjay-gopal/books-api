@@ -9,8 +9,7 @@ from app.routers.auth import get_current_user
 
 from typing import Annotated
 from app.scheme.Book import BookCreate, BookResponse
-
-events_queue: List[str] = []
+from app.routers.streaming import emit_book_event
 
 router = APIRouter(prefix="/books", tags=["Books"])
 
@@ -32,7 +31,7 @@ async def create_book(user: user_dependency, db: db_dependency, book: BookCreate
         db.add(db_book)
         db.commit()
         db.refresh(db_book)
-        events_queue.append(f"New book was created")
+        await emit_book_event("New book was created.")
         return db_book
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while processing the request. Please try again later.")
@@ -49,7 +48,7 @@ async def get_books(user: user_dependency, db: db_dependency, skip: int = Query(
         if user is None:
             raise HTTPException(status_code=status.HTTP_401_UNAUTHORIZED, detail="User is not authorized")
         books = db.query(Book).offset(skip).limit(limit).all()
-        events_queue.append(f"Book was retrieved")
+        await emit_book_event("Books was retrieved")
         return books
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while retrieving the books. Please try again later.")
@@ -67,7 +66,7 @@ async def get_book(user: user_dependency, db: db_dependency, id: int):
         book = db.query(Book).filter(Book.id == id).first()
         if not book:
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
-        events_queue.append(f"Book was retrieved, BookID: {id}")
+        await emit_book_event(f"Book was retrieved, Book ID: {id}")
         return book
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while retrieving the books by ID. Please try again later.")
@@ -93,13 +92,12 @@ async def update_book(user: user_dependency, db: db_dependency, id: int, updated
             setattr(book, key, value)
         db.commit()
         db.refresh(book)
-        events_queue.append(f"Book was updated, {updated_book.dict().items()}")
+        await emit_book_event(f"Book was updated, {updated_book.dict().items()}")
         return book
     except Exception as e:
         raise HTTPException(status_code=status.HTTP_500_INTERNAL_SERVER_ERROR, detail="Error while updating the book. Please try again later.")
 
-@router.delete("/{id}", summary="Delete a book", description="Delete a book by it's book id",
-               status_code=status.HTTP_200_OK)
+@router.delete("/{id}", summary="Delete a book", description="Delete a book by it's book id", status_code=status.HTTP_204_NO_CONTENT)
 async def delete_book(user: user_dependency, db: db_dependency, id: int):
     """
     Deletes a book based on book id
@@ -113,7 +111,7 @@ async def delete_book(user: user_dependency, db: db_dependency, id: int):
             raise HTTPException(status_code=status.HTTP_404_NOT_FOUND, detail="Book not found")
         db.delete(book)
         db.commit()
-        events_queue.append(f"Book was deleted, BookID: {id}")
+        await emit_book_event(f"Book was deleted, Book ID: {id}")
         return {
                 "message": "Book was deleted successfully"
             }

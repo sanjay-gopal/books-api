@@ -1,25 +1,37 @@
 from fastapi import APIRouter
-from sse_starlette.sse import EventSourceResponse
 import asyncio
 from app.routers.auth import get_current_user
 from fastapi import Depends
 from typing import Annotated
-from app.routers.book import events_queue
+from fastapi.responses import StreamingResponse
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
-router = APIRouter(prefix="/event", tags=["Streaming CRUD events"])
+router = APIRouter(prefix="/stream", tags=["Streaming CRUD events"])
 
-@router.get("/stream", summary="Stream the book events", description="Stream the book events for all the CRUD operations")
-async def stream_events(user: user_dependency):
+book_queue = asyncio.Queue()
+
+async def event_generator():
+    """
+    Event generator func stores the events emmited by the GET, PUT, and DELETE methods
+    """
+    while True:
+        try:
+            book_event = await asyncio.wait_for(book_queue.get(), timeout=3.0)
+            book_queue.task_done()
+        except asyncio.TimeoutError:
+            continue
+        yield f"Book event: {book_event}  \n \n \n"
+
+async def emit_book_event(event: str):
+    """
+    emit_book_event stores recieves the message when the book CRUD operations are called.
+    """
+    await book_queue.put(event)
+
+@router.get("/book-events", response_class=StreamingResponse)
+async def stream_book_events():
     """
     Streams the book event for all the CRUD operations
     """
-    async def event_generator():
-        while True:
-            if events_queue:
-                event = events_queue.pop(0)  # Get the first event in the queue
-                print(event)
-                yield (f"data: {event}\n\n")
-            await asyncio.sleep(3)
-    return EventSourceResponse(event_generator())
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
