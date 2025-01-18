@@ -10,12 +10,16 @@ user_dependency = Annotated[dict, Depends(get_current_user)]
 
 router = APIRouter(prefix="/event", tags=["Streaming CRUD events"])
 
-@router.get("/stream")
+@router.get("/stream", summary="Stream the book events", description="Stream the book events for all the CRUD operations")
 async def stream_events(user: user_dependency):
+    """
+    Streams the book event for all the CRUD operations
+    """
     async def event_generator():
         while True:
             if events_queue:
                 event = events_queue.pop(0)  # Get the first event in the queue
+                print(event)
                 yield (f"data: {event}\n\n")
             await asyncio.sleep(3)
     return EventSourceResponse(event_generator())
