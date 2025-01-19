@@ -7,9 +7,18 @@ from fastapi.responses import StreamingResponse
 
 user_dependency = Annotated[dict, Depends(get_current_user)]
 
-router = APIRouter(prefix="/stream", tags=["Streaming CRUD events"])
+router = APIRouter(prefix="/v1/stream", tags=["Streaming CRUD events of Book API"])
 
+#Queue to store the book events
 book_queue = asyncio.Queue()
+
+@router.get("/book-events", response_class=StreamingResponse)
+async def stream_book_events():
+    """
+    Streams the book event for all the CRUD operations
+    """
+    return StreamingResponse(event_generator(), media_type="text/event-stream")
+
 
 async def event_generator():
     """
@@ -25,13 +34,6 @@ async def event_generator():
 
 async def emit_book_event(event: str):
     """
-    emit_book_event stores recieves the message when the book CRUD operations are called.
+    emit_book_event puts the received event messages to the event queue when the book endpoints are called.
     """
     await book_queue.put(event)
-
-@router.get("/book-events", response_class=StreamingResponse)
-async def stream_book_events():
-    """
-    Streams the book event for all the CRUD operations
-    """
-    return StreamingResponse(event_generator(), media_type="text/event-stream")
